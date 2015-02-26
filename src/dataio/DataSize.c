@@ -1,10 +1,13 @@
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <zlib.h>
-#include <lzss.h>
 
+#include "../lzss/lzss.h"
 #include "dataio/dat.h"
 #include "dataio/text.h"
 #include "dataio/BigEndian.h"
@@ -19,7 +22,7 @@ static char Dat1Check(char * path) {
 	fseeko(file,4,SEEK_SET);
 	i = ftello(file);
 	e = fread(Unknown,4,2,file);
-	if(e != 2) fprintf(stderr,"Dat1Check couldn't read 2 dwords from 0x%lx\n",i);
+	if(e != 2) fprintf(stderr,"Dat1Check couldn't read 2 dwords from 0x%" PRIu64 "\n",i);
 	fclose(file);
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 	Unknown[0] = FR_bswap32(Unknown[0]);
@@ -36,7 +39,7 @@ static char Dat2Check(char * path) {
 	int e;
 	fseeko(file,-4,SEEK_END);
 	e = fread(&t32,4,1,file);
-	if(!e) fprintf(stderr,"Dat2Check failed to read dword at 0x%lx\n",t64);
+	if(!e) fprintf(stderr,"Dat2Check failed to read dword at 0x%" PRIu64 "\n",t64);
 	arcsize = ftello(file);
 	fclose(file);
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
@@ -193,13 +196,13 @@ static void AllocateFileX(struct fr_file_t * dat, FILE * fp) {
 	dat->Name = FR_textline(fp);
 	dat->Attributes = fgetc(fp);
 	e = fread(&dat->Offset,8,1,fp);
-	if(!e) fprintf(stderr,"AllocateFileX failed to read Offset at 0x%lx\n",i);
+	if(!e) fprintf(stderr,"AllocateFileX failed to read Offset at 0x%" PRIu64 "\n",i);
 	i = ftello(fp);
 	e = fread(&dat->OrigSize,8,1,fp);
-	if(!e) fprintf(stderr,"AllocateFileX failed to read Offset at 0x%lx\n",i);
+	if(!e) fprintf(stderr,"AllocateFileX failed to read Offset at 0x%" PRIu64 "\n",i);
 	i = ftello(fp);
 	e = fread(&dat->PackedSize,8,1,fp);
-	if(!e) fprintf(stderr,"AllocateFileX failed to read Offset at 0x%lx\n",i);
+	if(!e) fprintf(stderr,"AllocateFileX failed to read Offset at 0x%" PRIu64 "\n",i);
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 	dat->Offset = FR_bswap64(dat->Offset);
 	dat->OrigSize = FR_bswap64(dat->OrigSize);
@@ -214,7 +217,7 @@ static void AllocateDatX(struct fr_dat_handler_t * dat) {
 	struct fr_dat_t * fr = dat->proxy = (struct fr_dat_t*)malloc(sizeof(struct fr_dat_t));
 	fseeko(dat->fp,8,SEEK_SET);
 	e = fread(&fr->FileCount,8,1,dat->fp);
-	if(!e) fprintf(stderr,"AllocateDatX failed to read file count at 0x%lx\n",i);
+	if(!e) fprintf(stderr,"AllocateDatX failed to read file count at 0x%" PRIu64 "\n",i);
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 	fr->FileCount = FR_bswap64(fr->FileCount);
 #endif
