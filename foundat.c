@@ -56,6 +56,8 @@ char * compound_strings(const char * a, unsigned char strlen_a, const char * b, 
 #define F 18
 #define THRESHOLD 2
 #define GETBYTE() ((dwInputCurrent < dwInputLength) ? buffer[dwInputCurrent++] & 0x00FF : 0xffff)
+
+
 void LZSSDecode(char* buffer, int dwInputLength, char* arOut) {
 	uint16_t i, j, k, c;
 	int dictionaryIndex = N - F;
@@ -107,16 +109,17 @@ int f1unpack(struct fo1_file_t * file, const char * path, FILE * fp) {
 /*	if(file->PackedSize && file->Attributes == LZSS && !(blockDesc & 0x8000)) {
 */	if(file->PackedSize && file->Attributes == LZSS) {
 /*		printf("Extracting %s\t",fpath);
-*/		a = malloc(file->PackedSize-2);
-		fread(a,file->PackedSize-2,1,fp);
+*/		a = malloc(file->PackedSize);
+		fread(a,file->PackedSize,0,fp);
 		b = malloc(file->OrigSize);
 		printf("\tAllocated for output: %i\n",file->OrigSize);
-		LZSSDecode(a,file->PackedSize-2,b);
+		// this line generate problems so LZSSDecode should be debugged instead
+		LZSSDecode(a,file->PackedSize,b);
 		free(a);
 	} else {
 		b = malloc(file->OrigSize);
 /*		printf("Dumping    %s\t",fpath);
-*/		fread(b,file->OrigSize,1,fp);
+*/		fread(b,file->OrigSize,0,fp);
 	}
 	fo = fopen(fpath,"wb");
 	result = fwrite(b,file->OrigSize,1,fo);
@@ -142,11 +145,9 @@ void f1undat(struct fr_dat_handler_t * dat, const char * path) {
 		e = mkpath(a,0755);
 		printf("Files to extract: %u\n",fo1->Directory[i].FileCount);
 		for(j = 0; j < fo1->Directory[i].FileCount && !e; ++j) {
-			if(j == 0 || j == 17 || j == 38) {
-				printf("Extracting file %i\n",j);
-				e = f1unpack(&fo1->Directory[i].File[j],a,dat->fp);
-				if(e) printf("e: %i\n",e);
-			}
+			printf("Extracting file %i\n",j);
+			e = f1unpack(&fo1->Directory[i].File[j],a,dat->fp);
+			if(e) printf("e: %i\n",e);
 		}
 	}
 }
